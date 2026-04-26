@@ -1,10 +1,30 @@
-import { MapContainer, TileLayer, useMapEvents, Marker } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  useMapEvents,
+  Marker,
+  useMap,
+} from "react-leaflet";
 import { useState } from "react";
 import L from "leaflet";
 import styles from "./doctor-signup-first.module.css";
 import { useEffect } from "react";
 export default function LocationPicker({ onSelect, loca }) {
   const [position, setPosition] = useState(null);
+  function FixMapResize({ trigger }) {
+    const map = useMap();
+
+    useEffect(() => {
+      if (!map) return;
+
+      const t = setTimeout(() => {
+        map.invalidateSize(true);
+      }, 300);
+
+      return () => clearTimeout(t);
+    }, [trigger, map]);
+    return null;
+  }
   function MapClickHandler() {
     const map = useMapEvents({
       click(e) {
@@ -16,9 +36,8 @@ export default function LocationPicker({ onSelect, loca }) {
     return null;
   }
   useEffect(() => {
-    if (loca) {
+    if (loca && !position) {
       setPosition(loca);
-      onSelect(loca);
     }
   }, [loca]);
   const gpsIcon = L.divIcon({
@@ -38,9 +57,10 @@ export default function LocationPicker({ onSelect, loca }) {
       style={{ height: "300px", width: "100%", borderRadius: "10px" }}
     >
       <TileLayer
-        attribution=""
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+        attribution="&copy; Stadia Maps & OpenMapTiles & OpenStreetMap contributors"
       />
+      <FixMapResize trigger={loca} />
       <MapClickHandler />
 
       {position && <Marker position={position} icon={gpsIcon} />}

@@ -163,3 +163,59 @@ export const useFetchService = (doctor_id) => {
     retry: false,
   });
 };
+export const useFetchRequests = () => {
+  return useQuery({
+    queryKey: ["fetch-requests"],
+    queryFn: async () => {
+      const res = await api.get(`/doctors-approvement/`);
+      return res.data;
+    },
+    enabled: false,
+    retry: false,
+  });
+};
+export const useFetchRequest = (request_id) => {
+  return useQuery({
+    queryKey: ["fetch-request", request_id],
+    queryFn: async () => {
+      const res = await api.get(`/doctors-approvement/${request_id}`);
+      return res.data;
+    },
+    enabled: !!request_id,
+    retry: false,
+  });
+};
+export const useApprove = () => {
+  return useMutation({
+    mutationFn: async ({ practice_start_date, institution, request_id }) => {
+      const res = await api.post(`/doctors-approvement/${request_id}/approve`, {
+        institution,
+        practice_start_date,
+      });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      console.log(data.message);
+    },
+    onError: (err) => {
+      console.log(err.response);
+    },
+  });
+};
+export const useReject = () => {
+  return useMutation({
+    mutationFn: async ({ practice_start_date, institution, request_id }) => {
+      const res = await api.delete(
+        `/doctors-approvement/${request_id}/reject`,
+        { institution, practice_start_date },
+      );
+      return res.data;
+    },
+    onSuccess: (data) => {
+      console.log(data.message);
+    },
+    onError: (err) => {
+      console.log(err.response);
+    },
+  });
+};

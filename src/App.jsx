@@ -9,6 +9,7 @@ import Profile from "./doctor/profile/profile.jsx";
 import "leaflet/dist/leaflet.css";
 import Request from "./doctor/appointements/appointements.jsx";
 import MainPage from "./doctor/mainpage/mainpage.jsx";
+import Admin from "./doctor/admin/admin.jsx";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/signin" element={<DoctorSignin />}></Route>
       <Route path="/signup" element={<DoctorSignUp />}></Route>
       <Route path="/forgotpass" element={<DoctorForgotPass />}></Route>
+      <Route path="/admin" element={<Admin />}></Route>
       <Route path="/request-checker" element={<RequestChecker />}></Route>
       <Route path="/mainpage" element={<MainPage />}>
         <Route index element={<Dashboard />} />

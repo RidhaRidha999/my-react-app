@@ -683,7 +683,7 @@ export default function Profile() {
                       className="form-textarea"
                       spellCheck={false}
                       value={text}
-                      rows={1}
+                      rows={2}
                       placeholder="Describe your experience, specialties, and approach to patient care..."
                     />
                   </div>
@@ -725,6 +725,7 @@ export default function Profile() {
                           )}
 
                           <LocationPicker
+                            key={`${id}-${showMap}`}
                             onSelect={(loc) => {
                               setLocation(loc);
                             }}

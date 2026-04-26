@@ -48,6 +48,21 @@ function Dashboard() {
       //setCurrentDoctor(doctorData.data);
     }
   }, [doctorData]);
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        if (!doctorData?.data?.id) return;
+
+        const response = await getSchedule(doctorData.data.id);
+        setSchedule(response.data.data);
+      } catch (err) {
+        console.error("Schedule error:", err);
+        setSchedule(null);
+      }
+    };
+    fetchSchedule();
+    console.log(schedule);
+  }, [doctorData]);
   const getTodaySchedule = () => {
     if (!schedule) return null;
 
@@ -62,14 +77,13 @@ function Dashboard() {
     if (!scheduleData || scheduleData.length === 0) return null;
 
     // Fix Sunday issue (backend usually 1–7)
-    const today = new Date().getDay() || 7;
+    const today = new Date().getDay();
 
     return scheduleData.find((s) => s.day_of_week === today) || null;
   };
 
   const buildWorkBlocks = () => {
     const todaySchedule = getTodaySchedule();
-
     if (!todaySchedule) {
       return [{ start: "09:00", end: "17:00" }];
     }
@@ -123,7 +137,7 @@ function Dashboard() {
   };
 
   const getDoctorId = () => {
-    const doctorId = localStorage.getItem("doctorId");
+    const doctorId = doctorData?.data?.id;
     if (!doctorId) {
       return null;
     }
@@ -271,12 +285,9 @@ function Dashboard() {
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const doctorId = getDoctorId();
-        if (!doctorId) {
-          setSchedule(null);
-          return;
-        }
-        const response = await getSchedule(doctorId);
+        if (!doctorData?.data?.id) return;
+
+        const response = await getSchedule(doctorData.data.id);
         setSchedule(response.data);
       } catch (err) {
         console.error("Schedule error:", err);
@@ -284,7 +295,7 @@ function Dashboard() {
       }
     };
     fetchSchedule();
-  }, []);
+  }, [doctorData]);
 
   const getMinStartDate = () => {
     const minDate = new Date();

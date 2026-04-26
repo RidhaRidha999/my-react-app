@@ -5,9 +5,17 @@ import { TailSpin } from "react-loader-spinner";
 import { Conditions, conditionsVerify } from "../otp";
 import { Navigate, useNavigate } from "react-router";
 import { useEffect } from "react";
+import { useUser } from "../../hooks/useUser";
 export default function RequestChecker() {
   const { uploadDocument, fetchMine, sendDocuments, logout } = useAuth();
   const { isLoading, data, error, refetch } = fetchMine;
+  const {
+    isFetching,
+    data: doctorData,
+    error: doctor,
+    refetch: doctorRefetch,
+  } = useUser();
+  const [go, setGo] = useState(false);
   const [diploma, setDiploma] = useState(null);
   const [empCer, setEmpCer] = useState(null);
   const [crc, setCrc] = useState(null);
@@ -16,6 +24,9 @@ export default function RequestChecker() {
   const navigate = useNavigate();
   useEffect(() => {
     refetch();
+  }, []);
+  useEffect(() => {
+    doctorRefetch();
   }, []);
   const handleDip = (e) => {
     const selectedDip = e.target.files[0];
@@ -66,13 +77,16 @@ export default function RequestChecker() {
       },
     });
   };
-  if (isLoading)
+  if (isLoading || isFetching)
     return (
       <div className={styles.spin}>
         <TailSpin height="60" width="60" color="#215eed"></TailSpin>
       </div>
     );
-  if (!data) {
+  else if (
+    (!data?.data || data?.data.reviewed) &&
+    !doctorData?.data.is_doctor
+  ) {
     return (
       <div className={styles.container}>
         <div className={styles.main}>
@@ -299,8 +313,7 @@ export default function RequestChecker() {
         </div>
       </div>
     );
-  }
-  if (data.data.reviewed) {
+  } else if (doctorData?.data.is_doctor) {
     return <Navigate to="/mainpage" />;
   } else {
     return (
