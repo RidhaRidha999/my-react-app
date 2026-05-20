@@ -1,0 +1,95 @@
+body {
+  background-color: var(--bg-special);
+}
+.header {
+  width: 97.5vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  height: auto;
+  position: sticky;
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--border-color);
+  top: 0;
+  background-color: var(--bg-color);
+  z-index: 900;
+  flex-wrap: wrap;
+  margin-right: auto;
+  margin-left: auto;
+}
+.logoFlex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.icon {
+  font-family: "Material Symbols Outlined", sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  font-feature-settings: "liga";
+  color: var(--primary-color);
+  font-size: 1.75rem;
+}
+.med {
+  color: var(--text-color);
+  font-weight: bold;
+  font-size: 1.3rem;
+  letter-spacing: -0.025em;
+}
+.routes {
+  display: flex;
+  gap: 1.5rem;
+}
+.link {
+  color: var(--para-color);
+  display: inline-block;
+  height: 30px;
+  text-decoration: none;
+  transition-property: all;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--bg-color);
+}
+.link:hover {
+  border-bottom: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  transition-property: all;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.proPara {
+  color: var(--text-color);
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+.proPic {
+  height: 40px;
+  width: 40px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+.proSpe {
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  margin-top: 0;
+}
+@media (max-width: 786px) {
+  .pro {
+    display: none;
+  }
+}
