@@ -4,15 +4,13 @@ import { getAppointments } from "../../api/api";
 import { TailSpin } from "react-loader-spinner";
 
 function Request() {
-  const [dateFilter, setDateFilter] = useState("7days"); // Changed to 7days to show upcoming appointments
+  const [dateFilter, setDateFilter] = useState("today"); 
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Parse "YYYY-MM-DD" or "YYYY-MM-DDTHH:mm:ssZ" safely — always local time,
-  // never UTC (avoids the off-by-one day bug in UTC+1 Algeria)
   const parseDateString = (dateStr) => {
     if (!dateStr) return null;
     const datePart = String(dateStr).split("T")[0];
@@ -20,7 +18,7 @@ function Request() {
     if (parts.length !== 3) return null;
     const [year, month, day] = parts.map(Number);
     if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
-    return new Date(year, month - 1, day); // local midnight — no UTC shift
+    return new Date(year, month - 1, day); 
   };
 
   const getLocalToday = () => {
@@ -80,9 +78,6 @@ function Request() {
   };
 };
 
-  // Fetch ALL appointments once on mount — no date param needed.
-  // The API already scopes results to the logged-in doctor.
-  // Date-range filtering is done client-side below.
   useEffect(() => {
     const fetchAppointments = async () => {
       setLoading(true);
@@ -98,8 +93,6 @@ function Request() {
         console.log("Appointments fetched:", data.length, data);
         const formattedData = data.map(formatAppointment);
         setRequests(formattedData);
-        
-        // Debug logging to help troubleshoot
         console.log("Formatted appointments:", formattedData);
         const today = getLocalToday();
         console.log("Today's date:", today);
@@ -124,31 +117,29 @@ function Request() {
     let startDate = new Date(today);
     let endDate = new Date(today);
 
-    // Set the date range based on the selected filter
     if (dateFilter === "today") {
-      // Only today's appointments
+     
       startDate = new Date(today);
       endDate = new Date(today);
     } else if (dateFilter === "3days") {
-      // Today + next 2 days (total 3 days including today)
+     
       startDate = new Date(today);
       endDate = new Date(today);
       endDate.setDate(today.getDate() + 2);
     } else if (dateFilter === "7days") {
-      // Today + next 6 days (total 7 days including today)
+      
       startDate = new Date(today);
       endDate = new Date(today);
       endDate.setDate(today.getDate() + 6);
     }
 
-    // Set to beginning and end of day for accurate comparison
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(23, 59, 59, 999);
 
     let filtered = requests.filter((req) => {
       const appointmentDate = parseDateString(req.date);
       if (!appointmentDate) return false;
-      // Check if appointment date is within the range (inclusive)
+    
       return appointmentDate >= startDate && appointmentDate <= endDate;
     });
 
@@ -177,8 +168,8 @@ function Request() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentRequests = filteredRequests.slice(indexOfFirstItem, indexOfLastItem);
 
-  const scheduledCount = requests.filter((r) => r.status === "scheduled").length;
-  const canceledCount = requests.filter((r) => r.status === "canceled").length;
+ const scheduledCount = filteredRequests.filter( (r) => r.status === "scheduled").length;
+  const canceledCount = filteredRequests.filter((r) => r.status === "canceled").length;
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "No date";

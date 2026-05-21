@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useAuth } from "../doctor/contexts/authContext";
 
 const API = axios.create({
   baseURL: "https://mediora-back-2.onrender.com",
@@ -15,51 +14,77 @@ export const setAuthContext = (authContext) => {
   auth = authContext;
 };
 
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
-  if (
-    token &&
-    !config.headers.Authorization &&
-    !config.url.includes("/auth/signout")
-  ) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("authToken");
 
-  return config;
-});
+    if (
+      token &&
+      !config.headers.Authorization &&
+      !config.url.includes("/auth/signout")
+    ) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
 API.interceptors.response.use(
-  (res) => res,
+  (response) => response,
+
   async (error) => {
-    if (!error.config) return Promise.reject(error);
+    if (!error.config) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
+
       try {
-        const res = await axios.post(
+        const refreshResponse = await axios.post(
           "https://mediora-back-2.onrender.com/auth/refresh",
           {},
-          { withCredentials: true },
+          {
+            withCredentials: true,
+          },
         );
-        console.log(res.data.token);
-        const newToken = res.data.token;
-        localStorage.setItem("authToken", newToken);
-        auth?.setToken(newToken);
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return API(originalRequest);
-      } catch (err) {
-        console.log(err.response);
-        auth?.logout.mutate();
-        return Promise.reject(err);
+
+        const newToken = refreshResponse.data.token;
+
+        if (newToken) {
+          localStorage.setItem("authToken", newToken);
+          auth?.setToken(newToken);
+
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+          return API(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error("Refresh token failed:", refreshError);
+
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("doctorId");
+        localStorage.removeItem("doctorUsername");
+
+        auth?.logout?.mutate?.();
+
+        return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
   },
 );
-
-// LEAVE FUNCTIONS - USING WORKING VERSION
 export const addLeave = async (data) => {
   const doctorId = localStorage.getItem("doctorId");
+
   const response = await API.post("/doctors/leaves", {
     ...data,
     doctor_id: doctorId,
@@ -70,82 +95,131 @@ export const addLeave = async (data) => {
 
 export const getLeave = async () => {
   const doctorId = localStorage.getItem("doctorId");
-  const res = await API.get("/doctors/leaves", {
-    params: { doctor_id: doctorId },
+
+  const response = await API.get("/doctors/leaves", {
+    params: {
+      doctor_id: doctorId,
+    },
   });
-  console.log(res);
-  return res;
+
+  return response;
 };
 
 export const deleteLeave = async (id) => {
   const doctorId = localStorage.getItem("doctorId");
 
   const response = await API.delete(
-    `/doctors/leaves/${id}?doctor_id=${doctorId}`,
+    `/doctors/leaves/${id}`,
+    {
+      params: {
+        doctor_id: doctorId,
+      },
+    },
   );
 
   return response;
 };
 
 export const updateLeave = async (id, data) => {
-  const response = await API.patch(`/doctors/leaves/${id}`, data);
+  const response = await API.patch(
+    `/doctors/leaves/${id}`,
+    data,
+  );
+
   return response;
 };
-
-export const getSchedule = (doctorId) =>
-  API.get(`/doctors/${doctorId}/schedule`);
+export const getSchedule = async (doctorId) => {
+  return await API.get(`/doctors/${doctorId}/schedule`);
+};
 
 
 
 export const getAppointments = async () => {
-  const today = new Date();
+  try {
+    const today = new Date();
 
-  const requests = [];
+    const requests = [];
 
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
 
-    const formattedDate = date.toISOString().split("T")[0];
+      const formattedDate =
+        date.getFullYear() +
+        "-" +
+        String(date.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(date.getDate()).padStart(2, "0");
 
-    requests.push(
-      API.get("/appointments/patients", {
-        params: {
-          status: "scheduled",
-          date: formattedDate,
-          page: 1,
-          limit: 10,
-        },
-      }),
+      requests.push(
+        API.get("/appointments/patients", {
+          params: {
+            status: "scheduled",
+            date: formattedDate,
+            page: 1,
+            limit: 50,
+          },
+        })
+      );
+    }
+
+    const responses = await Promise.all(requests);
+
+    const allAppointments = responses.flatMap(
+      (res) => res.data?.data || []
     );
+
+    console.log("ALL APPOINTMENTS:", allAppointments);
+
+    return {
+      data: {
+        data: allAppointments,
+      },
+    };
+  } catch (error) {
+    console.error("Appointments fetch error:", error);
+    throw error;
   }
-
-  const responses = await Promise.all(requests);
-
-  const allAppointments = responses.flatMap(
-    (res) => res.data?.data || [],
-  );
-
-  return {
-    data: {
-      data: allAppointments,
-    },
-  };
+};
+export const getAllDoctors = async () => {
+  return await API.get("/doctors");
 };
 
-export const getAllDoctors = () => API.get("/doctors");
 export const getDoctorFeedback = async (doctorId) => {
-  const response = await API.get(`/doctors/${doctorId}/feedback`);
-  return response;
+  return await API.get(
+    `/doctors/${doctorId}/feedback`,
+  );
 };
 export const login = async (email, password) => {
   try {
-    const response = await API.post("/auth/signin", { email, password });
-    const { token, doctor_id, username } = response.data;
+    const response = await API.post(
+      "/auth/signin",
+      {
+        email,
+        password,
+      },
+    );
 
-    if (token) localStorage.setItem("authToken", token);
-    if (doctor_id) localStorage.setItem("doctorId", doctor_id);
-    if (username) localStorage.setItem("doctorUsername", username);
+    const {
+      token,
+      doctor_id,
+      username,
+    } = response.data;
+
+    if (token) {
+      localStorage.setItem("authToken", token);
+    }
+
+    if (doctor_id) {
+      localStorage.setItem("doctorId", doctor_id);
+    }
+
+    if (username) {
+      localStorage.setItem(
+        "doctorUsername",
+        username,
+      );
+    }
 
     return response;
   } catch (error) {

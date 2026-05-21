@@ -405,7 +405,6 @@ const fetchFeedbacks = async () => {
     }
   };
 
-  // NEW: Function to navigate to profile page
   const goToProfile = () => {
     navigate("/mainpage/profile");
   };
@@ -747,8 +746,6 @@ const fetchFeedbacks = async () => {
                   </div>
                 )}
               </section>
-
-              {/* UPDATED: Profile Card - Click now navigates to profile page */}
               <section
                 className="dash-card dash-profile-card"
                 onClick={goToProfile}

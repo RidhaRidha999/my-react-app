@@ -332,10 +332,13 @@ export default function RequestChecker() {
         <div className={styles.buttFlex}>
           <button
             className={styles.butt}
-            onClick={async () =>
-              //navigate("/signin")
-              logout.mutate()
-            }
+              onClick={async () => {
+                localStorage.removeItem("authToken");
+                localStorage.removeItem("doctorId");
+                localStorage.removeItem("doctorUsername");
+
+                logout.mutate();
+              }}
           >
             Log Out
             <span className={styles.iconLog}>Logout</span>

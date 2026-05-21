@@ -635,7 +635,13 @@ export default function Profile() {
                     ))}
 
                   <div
-                    onClick={async () => logout.mutate()}
+                 onClick={async () => {
+                    localStorage.removeItem("authToken");
+                    localStorage.removeItem("doctorId");
+                    localStorage.removeItem("doctorUsername");
+
+                    logout.mutate();
+                  }}
                     className="security-item"
                   >
                     <div className="security-item-left">
