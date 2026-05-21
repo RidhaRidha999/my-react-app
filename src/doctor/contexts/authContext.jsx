@@ -9,6 +9,10 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const queryClient = useQueryClient();
+  const [isOnline, setIsOnline] = useState(() => {
+  const savedStatus = localStorage.getItem("doctorOnlineStatus");
+  return savedStatus !== null ? savedStatus === "true" : true;
+});
   //useEffect(()=>{
   //const initAuth=async()=>{
   //if (!token) return;
@@ -78,7 +82,9 @@ export const AuthProvider = ({ children }) => {
       return res.data;
     },
   });
-
+useEffect(() => {
+  localStorage.setItem("doctorOnlineStatus", isOnline);
+}, [isOnline]);
   const verifyEmail = useMutation({
     mutationFn: async ({ code, email }) => {
       const res = await api.get("/auth/verify-email", {
@@ -237,6 +243,8 @@ export const AuthProvider = ({ children }) => {
         fetchMine,
         sendDocuments,
         queryClient,
+        isOnline,
+        setIsOnline,
       }}
     >
       {children}

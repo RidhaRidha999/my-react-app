@@ -18,7 +18,7 @@ import { TailSpin } from "react-loader-spinner";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [isOnline, setIsOnline] = useState(true);
+  const { isOnline, setIsOnline } = useAuth(); 
   const [leaveId, setLeaveId] = useState(null);
   const [vacationMode, setVacationMode] = useState(false);
   const [vacationStart, setVacationStart] = useState("");
