@@ -608,6 +608,9 @@
   padding: 1.5rem;
   border-radius: 12px;
 }
+.errorText {
+  color: rgb(255, 65, 65) !important;
+}
 .mandatoryIcon {
   font-family: "Material Symbols Outlined", sans-serif;
   font-weight: normal;

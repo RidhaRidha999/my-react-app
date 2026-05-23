@@ -139,7 +139,7 @@ export default function AdminSignIn() {
                 ) : login.isPending ? (
                   <TailSpin height="20" width="20" color="#215eed"></TailSpin>
                 ) : (
-                  "Continue to Dashboard"
+                  "Continue to Manage Requests"
                 )}
               </button>
             </form>

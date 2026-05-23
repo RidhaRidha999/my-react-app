@@ -1,3 +1,6 @@
+.errorText {
+  color: rgb(255, 65, 65) !important;
+}
 body {
   background-color: var(--bg-special);
 }

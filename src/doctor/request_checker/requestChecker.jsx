@@ -7,6 +7,20 @@ import { Navigate, useNavigate } from "react-router";
 import { useEffect } from "react";
 import { useUser } from "../../hooks/useUser";
 export default function RequestChecker() {
+  const validateFile = (file, allowedTypes) => {
+    if (!file) return false;
+
+    return allowedTypes.includes(file.type);
+  };
+
+  const allowedPdfTypes = ["application/pdf"];
+
+  const allowedImageTypes = [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp",
+  ];
   const { uploadDocument, fetchMine, sendDocuments, logout } = useAuth();
   const { isLoading, data, error, refetch } = fetchMine;
   const {
@@ -30,53 +44,97 @@ export default function RequestChecker() {
   }, []);
   const handleDip = (e) => {
     const selectedDip = e.target.files[0];
-    if (selectedDip) {
-      setDiploma(selectedDip);
+
+    if (!selectedDip) return;
+
+    if (!validateFile(selectedDip, allowedPdfTypes)) {
+      alert("Only PDF files are allowed.");
+      return;
     }
+
+    setDiploma(selectedDip);
   };
   const handleEmpCer = (e) => {
     const selectedEmpCer = e.target.files[0];
-    if (selectedEmpCer) {
-      setEmpCer(selectedEmpCer);
+
+    if (!selectedEmpCer) return;
+
+    if (!validateFile(selectedEmpCer, allowedPdfTypes)) {
+      alert("Only PDF files are allowed.");
+      return;
     }
+
+    setEmpCer(selectedEmpCer);
   };
   const handleCrc = (e) => {
     const selectedCrc = e.target.files[0];
-    if (selectedCrc) {
-      setCrc(selectedCrc);
+
+    if (!selectedCrc) return;
+
+    if (!validateFile(selectedCrc, allowedImageTypes)) {
+      alert("Only PNG, JPG, JPEG or WEBP images are allowed.");
+      return;
     }
+
+    setCrc(selectedCrc);
   };
   const handleLocPics = (e) => {
-    const selectLocPics = Array.from(e.target.files);
-    setLocPics((prev) => [...prev, ...selectLocPics]);
+    const selectedLocPics = Array.from(e.target.files);
+
+    const validFiles = selectedLocPics.filter((file) =>
+      validateFile(file, allowedImageTypes),
+    );
+
+    if (validFiles.length !== selectedLocPics.length) {
+      alert("Some files were rejected.");
+    }
+
+    setLocPics((prev) => [...prev, ...validFiles]);
   };
   const handleSubmit = async () => {
     const degree = await uploadDocument.mutateAsync(diploma);
     const emp = await uploadDocument.mutateAsync(empCer);
     const crcDoc = await uploadDocument.mutateAsync(crc);
+
     const workplace = await Promise.all(
       locPics.map((file) => uploadDocument.mutateAsync(file)),
     );
+
     const payload = {
-      degree,
-      employment_certificate: emp,
-      images_of_workplace: workplace,
-      commercial_registration_certificate: crcDoc,
+      degree: {
+        public_id: degree.public_id,
+        format: degree.format,
+        resource_type: degree.resource_type,
+        secure_url: degree.secure_url,
+      },
+      employment_certificate: {
+        public_id: emp.public_id,
+        format: emp.format,
+        resource_type: emp.resource_type,
+        secure_url: emp.secure_url,
+      },
+      images_of_workplace: workplace.map((img) => ({
+        public_id: img.public_id,
+        format: img.format,
+        resource_type: img.resource_type,
+        secure_url: img.secure_url,
+      })),
+      commercial_registration_certificate: {
+        public_id: crcDoc.public_id,
+        format: crcDoc.format,
+        resource_type: crcDoc.resource_type,
+        secure_url: crcDoc.secure_url,
+      },
       wallet_password: wallet,
     };
-    console.log({
-      degree,
-      emp,
-      crcDoc,
-      workplace,
-      wallet,
-    });
+
     sendDocuments.mutate(payload, {
       onSuccess: () => {
         refetch();
       },
     });
   };
+
   if (isLoading || isFetching)
     return (
       <div className={styles.spin}>
@@ -121,7 +179,7 @@ export default function RequestChecker() {
                   <div>
                     <div>
                       <p className={styles.tipPara1}>Upload Diploma</p>
-                      <p className={styles.tipPara2}>PDF,MAX 5MB</p>
+                      <p className={styles.tipPara2}>PDF</p>
                     </div>
                     <input
                       className={styles.profileContainInput}
@@ -153,7 +211,7 @@ export default function RequestChecker() {
                       <p className={styles.tipPara1}>
                         Upload Employement Certificate
                       </p>
-                      <p className={styles.tipPara2}>PDF,MAX 5MB</p>
+                      <p className={styles.tipPara2}>PDF</p>
                     </div>
                     <input
                       className={styles.profileContainInput}
@@ -181,14 +239,13 @@ export default function RequestChecker() {
                       <p className={styles.tipPara1}>
                         Upload Commercial Registration Certificate
                       </p>
-                      <p className={styles.tipPara2}>PDF,MAX 5MB</p>
+                      <p className={styles.tipPara2}>PNG,JPG,JPEG,WEBP</p>
                     </div>
                     <input
                       className={styles.profileContainInput}
                       onChange={(e) => handleCrc(e)}
                       type="file"
-                      multiple
-                      accept="image/png,image/jpg"
+                      accept="image/png,image/jpeg,image/webp"
                     />
                   </div>
                 ) : (
@@ -216,14 +273,14 @@ export default function RequestChecker() {
                       <p className={styles.tipPara1}>
                         Upload Workplace Pictures
                       </p>
-                      <p className={styles.tipPara2}>PNG,JPG</p>
+                      <p className={styles.tipPara2}>PNG,JPG,JPEG,WEBP</p>
                     </div>
                     <input
                       className={styles.profileContainInput}
                       onChange={(e) => handleLocPics(e)}
                       type="file"
                       multiple
-                      accept="image/png,image/jpg"
+                      accept="image/png,image/jpeg,image/webp"
                     />
                   </div>
                 ) : (
@@ -238,7 +295,7 @@ export default function RequestChecker() {
                       onChange={(e) => handleLocPics(e)}
                       type="file"
                       multiple
-                      accept="image/png,image/jpg"
+                      accept="image/png,image/jpeg,image/webp"
                     />
                   </div>
                 )}
@@ -260,9 +317,11 @@ export default function RequestChecker() {
           <div className={styles.buttFlex}>
             {sendDocuments.isError &&
               (sendDocuments.error?.response?.status === 400 ? (
-                <span className={styles.exist}>Request Already Sent</span>
+                <span className={`${styles.exist} ${styles.errorText}`}>
+                  Request Already Sent
+                </span>
               ) : (
-                <span className={styles.exist}>
+                <span className={`${styles.exist} ${styles.errorText}`}>
                   Something went wrong,check your files and try again.
                 </span>
               ))}
@@ -332,16 +391,21 @@ export default function RequestChecker() {
         <div className={styles.buttFlex}>
           <button
             className={styles.butt}
-              onClick={async () => {
-                localStorage.removeItem("authToken");
-                localStorage.removeItem("doctorId");
-                localStorage.removeItem("doctorUsername");
-
-                logout.mutate();
-              }}
+            onClick={async () => {
+              localStorage.removeItem("authToken");
+              localStorage.removeItem("doctorId");
+              localStorage.removeItem("doctorUsername");
+              logout.mutate();
+            }}
           >
-            Log Out
-            <span className={styles.iconLog}>Logout</span>
+            {!logout.isPending ? (
+              <>
+                Log Out
+                <span className={styles.iconLog}>Logout</span>
+              </>
+            ) : (
+              <TailSpin height="20" width="20" color="#ffffff"></TailSpin>
+            )}
           </button>
         </div>
       </div>

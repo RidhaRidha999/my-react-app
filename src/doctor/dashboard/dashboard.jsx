@@ -18,7 +18,7 @@ import { TailSpin } from "react-loader-spinner";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { isOnline, setIsOnline } = useAuth(); 
+  const { isOnline, setIsOnline } = useAuth();
   const [leaveId, setLeaveId] = useState(null);
   const [vacationMode, setVacationMode] = useState(false);
   const [vacationStart, setVacationStart] = useState("");
@@ -46,13 +46,13 @@ function Dashboard() {
   useEffect(() => {
     refetch();
   }, []);
-  
+
   useEffect(() => {
     if (doctorData?.data) {
       localStorage.setItem("doctorId", doctorData.data.id);
     }
   }, [doctorData]);
-  
+
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
@@ -67,7 +67,7 @@ function Dashboard() {
     fetchSchedule();
     console.log(schedule);
   }, [doctorData]);
-  
+
   const getTodaySchedule = () => {
     if (!schedule) return null;
 
@@ -86,90 +86,90 @@ function Dashboard() {
   };
 
   const buildWorkBlocks = () => {
-  const todaySchedule = getTodaySchedule();
+    const todaySchedule = getTodaySchedule();
 
-  if (!todaySchedule) {
-    return [{ start: "09:00", end: "17:00" }];
-  }
-
-  const formatTime = (timeString) => {
-    if (!timeString) return "00:00";
-
-    if (timeString.includes("T")) {
-      return timeString.split("T")[1].slice(0, 5);
+    if (!todaySchedule) {
+      return [{ start: "09:00", end: "17:00" }];
     }
 
-    return timeString.slice(0, 5);
-  };
+    const formatTime = (timeString) => {
+      if (!timeString) return "00:00";
 
-  const startTime = formatTime(todaySchedule.starting_time);
-  const endTime = formatTime(todaySchedule.finish_time);
+      if (timeString.includes("T")) {
+        return timeString.split("T")[1].slice(0, 5);
+      }
 
-  if (!todaySchedule.rest_times || todaySchedule.rest_times.length === 0) {
-    return [{ start: startTime, end: endTime }];
-  }
+      return timeString.slice(0, 5);
+    };
 
-  const blocks = [];
-  let currentStart = startTime;
+    const startTime = formatTime(todaySchedule.starting_time);
+    const endTime = formatTime(todaySchedule.finish_time);
 
-  const sortedRests = [...todaySchedule.rest_times].sort((a, b) =>
-    a.starting_time.localeCompare(b.starting_time),
-  );
+    if (!todaySchedule.rest_times || todaySchedule.rest_times.length === 0) {
+      return [{ start: startTime, end: endTime }];
+    }
 
-  for (const rest of sortedRests) {
-    const restStart = formatTime(rest.starting_time);
-    const restEnd = formatTime(rest.finish_time);
+    const blocks = [];
+    let currentStart = startTime;
 
-    if (currentStart < restStart) {
+    const sortedRests = [...todaySchedule.rest_times].sort((a, b) =>
+      a.starting_time.localeCompare(b.starting_time),
+    );
+
+    for (const rest of sortedRests) {
+      const restStart = formatTime(rest.starting_time);
+      const restEnd = formatTime(rest.finish_time);
+
+      if (currentStart < restStart) {
+        blocks.push({
+          start: currentStart,
+          end: restStart,
+        });
+      }
+
+      currentStart = restEnd;
+    }
+
+    if (currentStart < endTime) {
       blocks.push({
         start: currentStart,
-        end: restStart,
+        end: endTime,
       });
     }
 
-    currentStart = restEnd;
-  }
+    return blocks;
+  };
 
-  if (currentStart < endTime) {
-    blocks.push({
-      start: currentStart,
-      end: endTime,
-    });
-  }
+  const fetchFeedbacks = async () => {
+    try {
+      setFeedbackLoading(true);
 
-  return blocks;
-};
+      const doctorId = getDoctorId();
 
-const fetchFeedbacks = async () => {
-  try {
-    setFeedbackLoading(true);
+      if (!doctorId) return;
 
-    const doctorId = getDoctorId();
+      const response = await getDoctorFeedback(doctorId);
 
-    if (!doctorId) return;
+      let feedbackList = [];
 
-    const response = await getDoctorFeedback(doctorId);
+      if (Array.isArray(response.data)) {
+        feedbackList = response.data;
+      } else if (
+        response.data &&
+        response.data.data &&
+        Array.isArray(response.data.data)
+      ) {
+        feedbackList = response.data.data;
+      }
 
-    let feedbackList = [];
-
-    if (Array.isArray(response.data)) {
-      feedbackList = response.data;
-    } else if (
-      response.data &&
-      response.data.data &&
-      Array.isArray(response.data.data)
-    ) {
-      feedbackList = response.data.data;
+      setFeedbacks(feedbackList);
+    } catch (error) {
+      console.error("Error fetching feedbacks:", error);
+      setFeedbacks([]);
+    } finally {
+      setFeedbackLoading(false);
     }
-
-    setFeedbacks(feedbackList);
-  } catch (error) {
-    console.error("Error fetching feedbacks:", error);
-    setFeedbacks([]);
-  } finally {
-    setFeedbackLoading(false);
-  }
-};
+  };
 
   const getDoctorId = () => {
     const doctorId = doctorData?.data?.id;
@@ -299,12 +299,12 @@ const fetchFeedbacks = async () => {
   };
 
   useEffect(() => {
-  if (!doctorData?.data?.id) return;
-  checkVacationStatus();
-  fetchDoctorInfo();
-  fetchAppointments();
-  fetchFeedbacks();
-}, [doctorData]);
+    if (!doctorData?.data?.id) return;
+    checkVacationStatus();
+    fetchDoctorInfo();
+    fetchAppointments();
+    fetchFeedbacks();
+  }, [doctorData]);
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -344,7 +344,7 @@ const fetchFeedbacks = async () => {
     if (vacationMode) {
       return;
     }
-    
+
     setTempVacationStart("");
     setTempVacationEnd("");
     setShowVacationModal(true);
@@ -366,7 +366,6 @@ const fetchFeedbacks = async () => {
         finish_date: tempVacationEnd,
       });
       await checkVacationStatus();
-      alert("Vacation scheduled successfully!");
       closeVacationModal();
     } catch (error) {
       console.error("Error creating vacation:", error);
@@ -386,12 +385,11 @@ const fetchFeedbacks = async () => {
     if (!vacationMode) {
       return;
     }
-    
+
     setLoading(true);
     try {
       await deleteLeave(leaveId);
       await checkVacationStatus();
-      alert("Availability reopened successfully!");
     } catch (error) {
       console.error("Error deleting vacation:", error);
       if (error.response?.status === 404) {
@@ -458,7 +456,7 @@ const fetchFeedbacks = async () => {
   const doctorBio =
     doctorData?.data.description ||
     "Dedicated healthcare professional committed to providing excellent patient care.";
-  
+
   if (isLoading || isFetching) {
     return (
       <div className="request-wait-dash">
@@ -466,7 +464,7 @@ const fetchFeedbacks = async () => {
       </div>
     );
   }
-  
+
   return (
     <div className="dash-container">
       <aside className="dash-sidebar">
@@ -830,9 +828,7 @@ const fetchFeedbacks = async () => {
               <div className="dash-feedback-section">
                 <div className="dash-feedback-header">
                   <h3>Patient Feedback</h3>
-                  <span className="material-symbols-outlined">
-                    reviews
-                  </span>
+                  <span className="material-symbols-outlined">reviews</span>
                 </div>
 
                 {feedbackLoading ? (
@@ -866,25 +862,19 @@ const fetchFeedbacks = async () => {
 
                         <div>
                           <p className="dash-feedback-name">
-                            {
-                              feedbacks[0]?.patient?.username ||
-                              (
-                                `${feedbacks[0]?.patient?.first_name || ""} ${
-                                  feedbacks[0]?.patient?.last_name || ""
-                                }`
-                              ).trim() ||
-                              "Patient"
-                            }
+                            {feedbacks[0]?.patient?.username ||
+                              `${feedbacks[0]?.patient?.first_name || ""} ${
+                                feedbacks[0]?.patient?.last_name || ""
+                              }`.trim() ||
+                              "Patient"}
                           </p>
 
-                          <p className="dash-feedback-role">
-                            Verified Patient
-                          </p>
+                          <p className="dash-feedback-role">Verified Patient</p>
                         </div>
                       </div>
                     </div>
 
-                    <button 
+                    <button
                       className="dash-reviews-btn"
                       onClick={openAllReviewsModal}
                     >
@@ -894,9 +884,7 @@ const fetchFeedbacks = async () => {
                 ) : (
                   <div className="dash-feedback-empty-card">
                     <div className="dash-feedback-empty-icon">
-                      <span className="material-symbols-outlined">
-                        forum
-                      </span>
+                      <span className="material-symbols-outlined">forum</span>
                     </div>
 
                     <h4>No Feedback Yet</h4>
@@ -921,27 +909,41 @@ const fetchFeedbacks = async () => {
       {/* ALL REVIEWS MODAL */}
       {showAllReviewsModal && (
         <div className="dash-calendar-overlay" onClick={closeAllReviewsModal}>
-          <div className="dash-reviews-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="dash-reviews-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="dash-calendar-header">
               <h3>All Patient Reviews ({feedbacks.length})</h3>
-              <button className="dash-close-calendar" onClick={closeAllReviewsModal}>
+              <button
+                className="dash-close-calendar"
+                onClick={closeAllReviewsModal}
+              >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            
+
             <div className="dash-reviews-modal-body">
               {feedbacks.length > 0 ? (
                 <div className="dash-reviews-list">
                   {feedbacks.map((feedback, index) => (
-                    <div key={feedback.id || index} className="dash-review-item">
+                    <div
+                      key={feedback.id || index}
+                      className="dash-review-item"
+                    >
                       <div className="dash-feedback-quote">
-                        <span className="material-symbols-outlined">format_quote</span>
+                        <span className="material-symbols-outlined">
+                          format_quote
+                        </span>
                       </div>
                       <p className="dash-feedback-text">{feedback.body}</p>
                       <div className="dash-feedback-user">
                         <div className="dash-feedback-avatar">
-                          {(feedback?.patient?.username || 
-                            feedback?.patient?.first_name || "P")
+                          {(
+                            feedback?.patient?.username ||
+                            feedback?.patient?.first_name ||
+                            "P"
+                          )
                             .charAt(0)
                             .toUpperCase()}
                         </div>
@@ -954,7 +956,9 @@ const fetchFeedbacks = async () => {
                           <p className="dash-feedback-role">Verified Patient</p>
                           {feedback.created_at && (
                             <p className="dash-feedback-date">
-                              {new Date(feedback.created_at).toLocaleDateString()}
+                              {new Date(
+                                feedback.created_at,
+                              ).toLocaleDateString()}
                             </p>
                           )}
                         </div>
@@ -968,13 +972,19 @@ const fetchFeedbacks = async () => {
                     <span className="material-symbols-outlined">forum</span>
                   </div>
                   <h4>No Reviews Yet</h4>
-                  <p>Patient reviews and experiences will appear here once feedback is submitted.</p>
+                  <p>
+                    Patient reviews and experiences will appear here once
+                    feedback is submitted.
+                  </p>
                 </div>
               )}
             </div>
-            
+
             <div className="dash-calendar-footer">
-              <button className="dash-btn-secondary" onClick={closeAllReviewsModal}>
+              <button
+                className="dash-btn-secondary"
+                onClick={closeAllReviewsModal}
+              >
                 Close
               </button>
             </div>

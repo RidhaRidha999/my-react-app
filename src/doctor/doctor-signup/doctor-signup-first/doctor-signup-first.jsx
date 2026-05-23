@@ -8,8 +8,9 @@ import { useProfile } from "../../../hooks/useUser";
 export default function DoctorSignFirst({ setStep }) {
   const { completeSignup, checkUser, uploadDocument } = useAuth();
   const [fullName, setFullName] = useState("");
+  const USER_PREFIX = "Dr";
   const [selectedIm, setSelectedIm] = useState(null);
-  const [userName, setUserName] = useState("");
+  const [userName, setUserName] = useState(USER_PREFIX);
   const [speciality, setSpeciality] = useState("generaliste");
   const [preview, setPreview] = useState(null);
   const [uploadedDoc, setUploadedDoc] = useState(null);
@@ -27,7 +28,7 @@ export default function DoctorSignFirst({ setStep }) {
 
     uploadDocument.mutate(file, {
       onSuccess: (data) => {
-        setUploadedDoc(data); // ✅ store API response here
+        setUploadedDoc(data);
       },
     });
   };
@@ -145,10 +146,12 @@ export default function DoctorSignFirst({ setStep }) {
                   placeholder="Dr. username"
                 ></input>
                 {checkUser.data?.exists && (
-                  <span className={styles.exist}>Username already Taken</span>
+                  <span className={`${styles.exist} ${styles.errorText}`}>
+                    Username already Taken
+                  </span>
                 )}
                 {checkUser.isError && (
-                  <span className={styles.exist}>
+                  <span className={`${styles.exist} ${styles.errorText}`}>
                     Neither special characters nor spaces allowed
                   </span>
                 )}
@@ -198,7 +201,7 @@ export default function DoctorSignFirst({ setStep }) {
             </div>
             <div className={styles.verify}>
               {completeSignup.isError && (
-                <span className={styles.exist}>
+                <span className={`${styles.exist} ${styles.errorText}`}>
                   Make sure to fill all fields and try again
                 </span>
               )}
@@ -255,7 +258,8 @@ export default function DoctorSignFirst({ setStep }) {
                   checkUser.isPending ||
                   completeSignup.isPending ||
                   !fullName ||
-                  !userName
+                  !userName ||
+                  !preview
                     ? styles.wait
                     : styles.continue
                 }
@@ -264,10 +268,10 @@ export default function DoctorSignFirst({ setStep }) {
                 completeSignup.isPending ||
                 profile.isPending ? (
                   <TailSpin height="20" width="20" color="#215eed"></TailSpin>
-                ) : fullName && userName ? (
+                ) : fullName && userName && preview ? (
                   "Confirm Information"
                 ) : (
-                  "Please Enter your Informations"
+                  "Please Enter your Informations and Portrait"
                 )}
               </button>
             </div>

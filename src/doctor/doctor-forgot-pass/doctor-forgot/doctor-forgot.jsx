@@ -3,7 +3,7 @@ import styles from "./doctor-forgot.module.css";
 import { useAuth } from "../../contexts/authContext";
 import { useState } from "react";
 import { TailSpin } from "react-loader-spinner";
-export default function DoctorForgot({ next }) {
+export default function DoctorForgot({ emailR, setEmailR, next }) {
   const { forgotPassword } = useAuth();
   const [email, setEmail] = useState("");
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -48,6 +48,7 @@ export default function DoctorForgot({ next }) {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
+                    setEmailR(e.target.value);
                     forgotPassword.reset();
                   }}
                   className={styles.input}
@@ -58,11 +59,11 @@ export default function DoctorForgot({ next }) {
               </div>
               {forgotPassword.isError &&
                 (forgotPassword.error?.response?.status === 401 ? (
-                  <span className={styles.existNot}>
-                    Account doesn't exist.
+                  <span className={`${styles.existNot} ${styles.errorText}`}>
+                    Invalid Email.
                   </span>
                 ) : (
-                  <span className={styles.existNot}>
+                  <span className={`${styles.existNot} ${styles.errorText}`}>
                     An error has occured,check your Email and try again.
                   </span>
                 ))}
@@ -90,14 +91,16 @@ export default function DoctorForgot({ next }) {
                 <span>
                   {forgotPassword.isPending ? (
                     <TailSpin height="20" width="20" color="#215eed"></TailSpin>
-                  ) : email ? (
+                  ) : isValidEmail ? (
                     "Next"
                   ) : (
                     "Please Enter your Email"
                   )}
                 </span>
                 {!forgotPassword.isPending && (
-                  <span className={styles.buttonIcon}>arrow_forward</span>
+                  <span className={styles.buttonIcon}>
+                    {isValidEmail ? "arrow_forward" : ""}
+                  </span>
                 )}
               </button>
               <div className={styles.a}>

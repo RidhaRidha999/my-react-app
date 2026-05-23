@@ -66,7 +66,7 @@ export default function DoctorSignin() {
                     onSuccess: () => {
                       navigate("/request-checker");
                     },
-                  }
+                  },
                 );
               }}
               className={styles.form}
@@ -123,9 +123,11 @@ export default function DoctorSignin() {
               </div>
               {login.isError &&
                 (login.error?.response?.status === 401 ? (
-                  <span className={styles.not}>Invalid Credentials</span>
+                  <span className={`${styles.not} ${styles.errorText}`}>
+                    Invalid Credentials
+                  </span>
                 ) : (
-                  <span className={styles.not}>
+                  <span className={`${styles.not} ${styles.errorText}`}>
                     Please Re-check all Fields and Try Again
                   </span>
                 ))}

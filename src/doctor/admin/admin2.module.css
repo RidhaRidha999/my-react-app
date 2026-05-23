@@ -1,3 +1,11 @@
+.errorText {
+  color: rgb(255, 65, 65) !important;
+}
+.warning {
+  font-size: 14px;
+  margin-top: 0.3rem;
+  display: block;
+}
 .spin {
   background-color: var(--bg-special);
   display: flex !important;

@@ -13,6 +13,7 @@ import { TailSpin } from "react-loader-spinner";
 export default function Admin() {
   const { data, isFetching, error, refetch } = useFetchRequests();
   const [id, setId] = useState("");
+  const [warning, setWarning] = useState(false);
   const {
     data: requestData,
     isFetching: requestIsFetching,
@@ -120,11 +121,11 @@ export default function Admin() {
   };
 
   const handleAccept = (doctorId) => {
-    alert(`Doctor ${doctorId} has been accepted!`);
+    console.log("accepted");
   };
 
   const handleReject = (doctorId) => {
-    alert(`Doctor ${doctorId} has been rejected!`);
+    console.log("rejected");
   };
 
   // Start editing education info
@@ -221,6 +222,24 @@ export default function Admin() {
       "...",
       totalPages,
     ];
+  };
+  const nameLook = (name) => {
+    switch (name) {
+      case "degree":
+        return "Doctor Degree";
+        break;
+      case "employment_certificate":
+        return "Employement Certificate";
+        break;
+      case "images_of_workplace":
+        return "Workplace Image";
+        break;
+      case "commercial_registration_certificate":
+        return "Commercial Registration Certificate";
+        break;
+      default:
+        return "";
+    }
   };
   if (isFetching) {
     return (
@@ -551,13 +570,14 @@ export default function Admin() {
                                           </div>
                                           <button
                                             className="ad-btn-edit"
-                                            onClick={() =>
+                                            onClick={() => {
+                                              setWarning(false);
                                               startEditing(
                                                 doctor.id,
                                                 eduInfo.yearsExperience,
                                                 eduInfo.institution,
-                                              )
-                                            }
+                                              );
+                                            }}
                                           >
                                             <span className="material-symbols-outlined">
                                               edit
@@ -567,6 +587,14 @@ export default function Admin() {
                                         </div>
                                       )}
                                     </div>
+                                    {warning && (
+                                      <span
+                                        className={`${styles.errorText} ${styles.warning}`}
+                                      >
+                                        Please fill in Doctor's Institution and
+                                        Experience
+                                      </span>
+                                    )}
                                   </div>
 
                                   <div className="ad-col-right">
@@ -596,17 +624,24 @@ export default function Admin() {
                                               key={idx}
                                             >
                                               <div className="ad-doc-icon-wrap">
-                                                <span className="material-symbols-outlined">
-                                                  description
-                                                </span>
+                                                {doc.size
+                                                  ?.toLowerCase()
+                                                  .includes("pdf") ? (
+                                                  <span className="material-symbols-outlined">
+                                                    description
+                                                  </span>
+                                                ) : (
+                                                  <span className="material-symbols-outlined">
+                                                    image
+                                                  </span>
+                                                )}
                                               </div>
 
                                               <p className="ad-doc-name">
-                                                {doc.name}
+                                                {nameLook(doc.name)}
                                               </p>
 
                                               <p className="ad-doc-meta">
-                                                {doc.type}{" "}
                                                 {doc.size && `• ${doc.size}`}
                                               </p>
 
@@ -661,9 +696,7 @@ export default function Admin() {
                                             !edu?.yearsExperience ||
                                             !edu?.institution
                                           ) {
-                                            alert(
-                                              "Please fill education info before approving",
-                                            );
+                                            setWarning(true);
                                             return;
                                           }
                                           approve.mutate(
@@ -699,6 +732,7 @@ export default function Admin() {
                                           </>
                                         )}
                                       </button>
+
                                       <button
                                         className="ad-btn-reject"
                                         onClick={() => {

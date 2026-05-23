@@ -121,6 +121,7 @@ export default function Profile() {
                 end: d.rest_times[0].finish_time,
               }
             : base[d.day_of_week].rest,
+          rest_times: d.rest_times || [],
           existsInSchedule: true,
         };
       });
@@ -145,7 +146,7 @@ export default function Profile() {
             scheduleFetch();
             setShowRest(true);
           },
-        }
+        },
       );
       console.log(`Rest saved for day ${dayIndex}`);
     } catch (err) {
@@ -156,10 +157,14 @@ export default function Profile() {
   const handleSaveSchedule = async () => {
     const entries = schedule;
     const activeDays = entries
-      .filter((d) => d.active)
       .map((d, index) => ({
-        id: d.id,
+        ...d,
         day_of_week: index,
+      }))
+      .filter((d) => d.active)
+      .map((d) => ({
+        id: d.id,
+        day_of_week: d.day_of_week,
         starting_time: d.start,
         finish_time: d.end,
         max_appointments: d.max,
@@ -175,8 +180,8 @@ export default function Profile() {
             onSettled: () => {
               console.log("delete success");
             },
-          })
-        )
+          }),
+        ),
       );
       console.log("Schedule updated successfully");
       scheduleFetch();
@@ -281,15 +286,15 @@ export default function Profile() {
 
   const updateDay = (day, field, value) => {
     setSchedule((prev) =>
-      prev.map((item, i) => (i === day ? { ...item, [field]: value } : item))
+      prev.map((item, i) => (i === day ? { ...item, [field]: value } : item)),
     );
   };
 
   const updateRest = (day, field, value) => {
     setSchedule((prev) =>
       prev.map((item, i) =>
-        i === day ? { ...item, rest: { ...item.rest, [field]: value } } : item
-      )
+        i === day ? { ...item, rest: { ...item.rest, [field]: value } } : item,
+      ),
     );
   };
 
@@ -469,7 +474,7 @@ export default function Profile() {
                                           setNewPass("");
                                           setShowPass(false);
                                         },
-                                      }
+                                      },
                                     );
                                   }}
                                   className={
@@ -491,7 +496,9 @@ export default function Profile() {
                               )}
                             </div>
                             {changePass.isError && (
-                              <span className={styles.be}>
+                              <span
+                                className={`${styles.be} ${styles.errorText}`}
+                              >
                                 Re-check your current password and try again.
                               </span>
                             )}
@@ -605,7 +612,7 @@ export default function Profile() {
                                   setReplace(true);
                                   setChange(false);
                                 },
-                              }
+                              },
                             );
                           }}
                           className={styles.greyIcon}
@@ -625,23 +632,23 @@ export default function Profile() {
 
                   {checkUser.isError &&
                     (checkUser.error?.response?.status === 409 ? (
-                      <span className={styles.taken}>
+                      <span className={`${styles.be} ${styles.errorText}`}>
                         Username already taken.
                       </span>
                     ) : (
-                      <span className={styles.taken}>
+                      <span className={`${styles.be} ${styles.errorText}`}>
                         Re-check your username and try again.
                       </span>
                     ))}
 
                   <div
-                 onClick={async () => {
-                    localStorage.removeItem("authToken");
-                    localStorage.removeItem("doctorId");
-                    localStorage.removeItem("doctorUsername");
+                    onClick={async () => {
+                      localStorage.removeItem("authToken");
+                      localStorage.removeItem("doctorId");
+                      localStorage.removeItem("doctorUsername");
 
-                    logout.mutate();
-                  }}
+                      logout.mutate();
+                    }}
                     className="security-item"
                   >
                     <div className="security-item-left">
@@ -681,7 +688,7 @@ export default function Profile() {
                       clinic_posx: location?.lat?.toString(),
                       clinic_posy: location?.lng?.toString(),
                     },
-                    {}
+                    {},
                   );
                 }}
                 className={styles.saveFlex}
@@ -703,7 +710,9 @@ export default function Profile() {
                 <h3 className="section-title">Professional Information</h3>
                 <div className="form-stack">
                   <div className="form-textarea-contain">
-                    <label className="form-label">About Me</label>
+                    <label className="form-label">
+                      About Me/Clinic Information
+                    </label>
                     <textarea
                       onChange={(e) => setText(e.target.value)}
                       className="form-textarea"
@@ -844,7 +853,7 @@ export default function Profile() {
                                     setShowService(false);
                                     serviceRefetch();
                                   },
-                                }
+                                },
                               );
                             }}
                           >
@@ -866,8 +875,9 @@ export default function Profile() {
               <div className={styles.mandatory}>
                 <span className={styles.mandatoryIcon}>info</span>
                 <span className={styles.mandatoryPara}>
-                  Working days, hours and the maximum number of patients are
-                  mandatory before doctors are allowed to take appointments.
+                  To enable appointment booking and ensure smooth clinic
+                  workflow, please complete your working days, maximum patient
+                  capacity, and clinic information.
                 </span>
               </div>
             </div>
@@ -888,7 +898,7 @@ export default function Profile() {
                     </label>
 
                     <div className="days-grid">
-                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
                         (d, i) => (
                           <label key={i} className="day-label">
                             <input
@@ -916,7 +926,7 @@ export default function Profile() {
                               {d}
                             </span>
                           </label>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -1007,7 +1017,7 @@ export default function Profile() {
                         </div>
                       </div>
                       {rest.isError && rest.error?.response?.status === 409 && (
-                        <span className={styles.be}>
+                        <span className={`${styles.be} ${styles.errorText}`}>
                           Rest already exists in that time
                         </span>
                       )}
@@ -1032,9 +1042,7 @@ export default function Profile() {
                         <div className={styles.saveFlexW}>
                           <button
                             onClick={() => {
-                              console.log(
-                                scheduleData.data[selectedDay].rest_times
-                              );
+                              console.log(schedule[selectedDay]?.rest_times);
                               setShowRest(true);
                             }}
                             className={styles.draft}
@@ -1061,12 +1069,13 @@ export default function Profile() {
                           </button>
                         </div>
                         <div className={styles.saveFlexWH}>
-                          {scheduleData.data[selectedDay].rest_times.map(
+                          {schedule[selectedDay]?.rest_times?.map(
                             (d, index) => (
                               <div key={index}>
                                 <p className={styles.be}>{d.starting_time}</p>
                                 <p className="hours-sep">to</p>
                                 <p className={styles.be}>{d.finish_time}</p>
+
                                 <div className={styles.saveFlexWHE}>
                                   {!deleteRest.isPending ? (
                                     <button
@@ -1090,7 +1099,7 @@ export default function Profile() {
                                   )}
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </div>

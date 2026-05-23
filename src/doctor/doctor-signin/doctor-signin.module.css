@@ -1,3 +1,6 @@
+.errorText {
+  color: rgb(255, 65, 65) !important;
+}
 body {
   background-color: var(--bg-color);
   padding: 0;
@@ -416,7 +419,7 @@ body {
 }
 
 .divider::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
