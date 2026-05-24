@@ -11,7 +11,9 @@ export default function DoctorSignin() {
   const [password, setPassword] = useState("");
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPassword = password.length >= 8;
-
+  const handleGoogleLogin = () => {
+    window.location.href = "https://mediora-back-2.onrender.com/auth/google";
+  };
   return (
     <div className={styles.contain}>
       <div className={styles.pageFlex}>
@@ -151,7 +153,10 @@ export default function DoctorSignin() {
             </div>
 
             <div className={styles.googleGrid}>
-              <button className={styles.googleButton}>
+              <button
+                className={styles.googleButton}
+                onClick={handleGoogleLogin}
+              >
                 <svg
                   className={styles.svgCl}
                   viewBox="0 0 24 24"
